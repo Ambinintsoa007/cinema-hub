@@ -284,7 +284,185 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
 
+  /movies:
+    get:
+      tags:
+        - Movies
+      summary: List movies
+      operationId: getMovies
+      security: [ ]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: title
+          in: query
+          schema:
+            type: string
+        - name: genre
+          in: query
+          schema:
+            $ref: '#/components/schemas/Genre'
+      responses:
+        '200':
+          description: Paginated movies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoviePageResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    post:
+      tags:
+        - Movies
+      summary: Create a movie
+      operationId: createMovie
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMovieRequest'
+      responses:
+        '201':
+          description: Movie created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '400':
+          description: Invalid movie data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Movie title already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /movies/{movieId}:
+    get:
+      tags:
+        - Movies
+      summary: Get a movie by identifier
+      operationId: getMovieById
+      security: [ ]
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '400':
+          description: Invalid movie identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      tags:
+        - Movies
+      summary: Update a movie
+      operationId: updateMovie
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMovieRequest'
+      responses:
+        '200':
+          description: Movie updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '400':
+          description: Invalid movie data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Duplicate title or duration cannot be changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
+  parameters:
+    MovieId:
+      name: movieId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   securitySchemes:
     bearerAuth:
       type: http
@@ -458,4 +636,112 @@ components:
           format: int64
         totalPages:
           type: integer
+    Genre:
+      type: string
+      enum:
+        - ACTION
+        - ANIMATION
+        - COMEDY
+        - DRAMA
+        - FANTASY
+        - ROMANCE
+        - SCI_FI
+        - THRILLER
 
+    CreateMovieRequest:
+      type: object
+      required:
+        - title
+        - description
+        - duration
+        - genres
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          format: duration
+          example: PT2H15M
+        genres:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Genre'
+
+    UpdateMovieRequest:
+      type: object
+      required:
+        - title
+        - description
+        - duration
+        - genres
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        duration:
+          type: string
+          format: duration
+          example: PT2H15M
+        genres:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Genre'
+
+    MovieResponse:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - duration
+        - genres
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        duration:
+          type: string
+          format: duration
+          example: PT2H15M
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/Genre'
+
+    MoviePageResponse:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - totalElements
+        - totalPages
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieResponse'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
