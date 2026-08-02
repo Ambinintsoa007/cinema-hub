@@ -34,6 +34,44 @@ openApiValidate {
     inputSpec.set("$rootDir/doc/api.yml")
 }
 
+tasks.register('generateOpenApiCode', GenerateTask) {
+    generatorName.set('spring')
+    inputSpec.set("$rootDir/doc/api.yml")
+    outputDir.set("$buildDir/generated/openapi")
+
+    apiPackage.set('hei.school.cinema.gen.api')
+    modelPackage.set('hei.school.cinema.gen.model')
+    invokerPackage.set('hei.school.cinema.gen')
+
+    generateApiTests.set(false)
+    generateModelTests.set(false)
+    generateApiDocumentation.set(false)
+    generateModelDocumentation.set(false)
+
+    configOptions.set([
+            interfaceOnly          : 'true',
+            useSpringBoot3         : 'true',
+            useTags                : 'true',
+            skipDefaultInterface   : 'true',
+            useBeanValidation      : 'true',
+            performBeanValidation  : 'true',
+            openApiNullable        : 'false',
+            dateLibrary            : 'java8'
+    ])
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/openapi/src/main/java"
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('generateOpenApiCode')
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -149,7 +187,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 
     implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
-    implementation 'io.swagger:swagger-annotations:1.6.12'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.28'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.2'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.2'
