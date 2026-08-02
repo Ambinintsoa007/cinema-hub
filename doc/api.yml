@@ -782,6 +782,263 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
 
+  /reservations:
+    get:
+      tags:
+        - Reservations
+      summary: List reservations
+      operationId: getReservations
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: projectionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: clientId
+          in: query
+          description: Available only to employees and managers
+          schema:
+            type: string
+            format: uuid
+        - name: handled
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Paginated reservations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationPageResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    post:
+      tags:
+        - Reservations
+      summary: Create a reservation for the authenticated client
+      operationId: createReservation
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationRequest'
+      responses:
+        '201':
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Invalid reservation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Client role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Projection or seat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Seat already reserved or projection already started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /reservations/{reservationId}:
+    get:
+      tags:
+        - Reservations
+      summary: Get a reservation by identifier
+      operationId: getReservationById
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: Reservation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Invalid reservation identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      tags:
+        - Reservations
+      summary: Replace the seats of a reservation
+      operationId: updateReservationSeats
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReservationSeatsRequest'
+      responses:
+        '200':
+          description: Reservation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Invalid reservation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Employee or manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Reservation or seat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Seat unavailable or projection already started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /reservations/{reservationId}/handling:
+    patch:
+      tags:
+        - Reservations
+      summary: Handle a reservation
+      operationId: handleReservation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: Reservation handled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Invalid reservation identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Employee or manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Reservation already handled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   parameters:
     UserId:
@@ -807,6 +1064,13 @@ components:
         format: uuid
     ProjectionId:
       name: projectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReservationId:
+      name: reservationId
       in: path
       required: true
       schema:
@@ -1257,6 +1521,97 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProjectionResponse'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    CreateReservationRequest:
+      type: object
+      required:
+        - projectionId
+        - seatIds
+      properties:
+        projectionId:
+          type: string
+          format: uuid
+        seatIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    UpdateReservationSeatsRequest:
+      type: object
+      required:
+        - seatIds
+      properties:
+        seatIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    ReservationResponse:
+      type: object
+      required:
+        - id
+        - clientId
+        - projectionId
+        - seatIds
+        - totalPrice
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        projectionId:
+          type: string
+          format: uuid
+        seatIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        totalPrice:
+          type: number
+          example: 30000
+        createdAt:
+          type: string
+          format: date-time
+        handledById:
+          type: string
+          format: uuid
+          nullable: true
+        handledAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ReservationPageResponse:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - totalElements
+        - totalPages
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReservationResponse'
         page:
           type: integer
         pageSize:
