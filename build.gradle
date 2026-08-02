@@ -30,6 +30,10 @@ java {
     targetCompatibility = '21'
 }
 
+openApiValidate {
+    inputSpec.set("$rootDir/doc/api.yml")
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
