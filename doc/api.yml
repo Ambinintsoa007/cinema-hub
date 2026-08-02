@@ -454,10 +454,165 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
 
+  /rooms:
+    get:
+      tags:
+        - Rooms
+      summary: List rooms
+      operationId: getRooms
+      security: [ ]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Paginated rooms
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomPageResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    post:
+      tags:
+        - Rooms
+      summary: Create a room and generate its seats
+      operationId: createRoom
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '400':
+          description: Invalid room data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Room number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /rooms/{roomId}:
+    get:
+      tags:
+        - Rooms
+      summary: Get a room by identifier
+      operationId: getRoomById
+      security: [ ]
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Room found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+        '400':
+          description: Invalid room identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /rooms/{roomId}/seats:
+    get:
+      tags:
+        - Rooms
+      summary: List the seats of a room
+      operationId: getRoomSeats
+      security: [ ]
+      parameters:
+        - $ref: '#/components/parameters/RoomId'
+      responses:
+        '200':
+          description: Room seats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeatResponse'
+        '400':
+          description: Invalid room identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     MovieId:
       name: movieId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    RoomId:
+      name: roomId
       in: path
       required: true
       schema:
@@ -736,6 +891,80 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MovieResponse'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    CreateRoomRequest:
+      type: object
+      required:
+        - number
+        - rows
+        - seatsPerRow
+      properties:
+        number:
+          type: string
+          minLength: 1
+        rows:
+          type: integer
+          minimum: 1
+          maximum: 26
+        seatsPerRow:
+          type: integer
+          minimum: 1
+          maximum: 100
+
+    RoomResponse:
+      type: object
+      required:
+        - id
+        - number
+        - capacity
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+
+    SeatResponse:
+      type: object
+      required:
+        - id
+        - number
+        - roomId
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+          example: A1
+        roomId:
+          type: string
+          format: uuid
+
+    RoomPageResponse:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - totalElements
+        - totalPages
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomResponse'
         page:
           type: integer
         pageSize:
