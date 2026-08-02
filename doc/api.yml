@@ -1,0 +1,29 @@
+openapi: 3.0.3
+
+info:
+  title: Cinema Hub API
+  description: REST API for cinema management, projections and reservations.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Current server
+
+tags:
+  - name: Authentication
+  - name: Users
+  - name: Movies
+  - name: Rooms
+  - name: Projections
+  - name: Reservations
+
+paths: {}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas: {}
