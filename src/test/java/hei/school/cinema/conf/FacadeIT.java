@@ -10,10 +10,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 @PojaGenerated
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Slf4j
+@ActiveProfiles("test")
 public class FacadeIT {
 
   private static final PostgresConf POSTGRES_CONF = new PostgresConf();
