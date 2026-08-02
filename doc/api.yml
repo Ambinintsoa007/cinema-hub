@@ -594,6 +594,194 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
 
+  /projections:
+    get:
+      tags:
+        - Projections
+      summary: List projections
+      operationId: getProjections
+      security: [ ]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: movieId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated projections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionPageResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    post:
+      tags:
+        - Projections
+      summary: Create a projection
+      operationId: createProjection
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectionRequest'
+      responses:
+        '201':
+          description: Projection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionResponse'
+        '400':
+          description: Invalid projection data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Movie or room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Projection overlaps another projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /projections/{projectionId}:
+    get:
+      tags:
+        - Projections
+      summary: Get a projection by identifier
+      operationId: getProjectionById
+      security: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ProjectionId'
+      responses:
+        '200':
+          description: Projection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionResponse'
+        '400':
+          description: Invalid projection identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Projection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      tags:
+        - Projections
+      summary: Update a projection
+      operationId: updateProjection
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/ProjectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectionRequest'
+      responses:
+        '200':
+          description: Projection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionResponse'
+        '400':
+          description: Invalid projection data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Manager role required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Projection, movie or room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Projection overlaps another projection or already has reservations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   parameters:
     UserId:
@@ -610,7 +798,6 @@ components:
       schema:
         type: string
         format: uuid
-
     RoomId:
       name: roomId
       in: path
@@ -618,6 +805,14 @@ components:
       schema:
         type: string
         format: uuid
+    ProjectionId:
+      name: projectionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -965,6 +1160,103 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RoomResponse'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    CreateProjectionRequest:
+      type: object
+      required:
+        - movieId
+        - roomId
+        - startAt
+        - seatPrice
+      properties:
+        movieId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        seatPrice:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 15000
+
+    UpdateProjectionRequest:
+      type: object
+      required:
+        - movieId
+        - roomId
+        - startAt
+        - seatPrice
+      properties:
+        movieId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        seatPrice:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 15000
+
+    ProjectionResponse:
+      type: object
+      required:
+        - id
+        - movieId
+        - roomId
+        - startAt
+        - endAt
+        - seatPrice
+      properties:
+        id:
+          type: string
+          format: uuid
+        movieId:
+          type: string
+          format: uuid
+        roomId:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        seatPrice:
+          type: number
+          example: 15000
+
+    ProjectionPageResponse:
+      type: object
+      required:
+        - data
+        - page
+        - pageSize
+        - totalElements
+        - totalPages
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionResponse'
         page:
           type: integer
         pageSize:
