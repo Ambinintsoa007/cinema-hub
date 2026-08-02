@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS dummy_uuid;
+DROP TABLE IF EXISTS dummy;
