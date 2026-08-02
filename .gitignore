@@ -42,3 +42,5 @@ out/
 ### Mac OS ###
 .DS_Store
 plan_cinema_hub.jpg
+.env
+!.env.template
