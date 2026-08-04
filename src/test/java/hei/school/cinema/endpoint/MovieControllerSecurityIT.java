@@ -183,6 +183,60 @@ class MovieControllerSecurityIT extends FacadeIT {
 
   @Test
   @WithMockUser(roles = "MANAGER")
+  void update_movie_preserving_an_existing_genre_returns_200() throws Exception {
+    MvcResult createdResult =
+        mockMvc
+            .perform(
+                post("/movies")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        toJson(
+                            Map.of(
+                                "title",
+                                "Inception",
+                                "description",
+                                "A dream within a dream",
+                                "duration",
+                                "PT2H15M",
+                                "genres",
+                                List.of("ACTION", "SCI_FI")))))
+            .andExpect(status().isCreated())
+            .andReturn();
+    MovieResponse created =
+        objectMapper.readValue(
+            createdResult.getResponse().getContentAsString(), MovieResponse.class);
+    assertThat(created.getGenres())
+        .extracting(Genre::getValue)
+        .containsExactlyInAnyOrder("ACTION", "SCI_FI");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                put("/movies/" + created.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        toJson(
+                            Map.of(
+                                "title",
+                                "Inception",
+                                "description",
+                                "A dream within a dream",
+                                "duration",
+                                "PT2H15M",
+                                "genres",
+                                List.of("ACTION", "DRAMA")))))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    MovieResponse updated =
+        objectMapper.readValue(result.getResponse().getContentAsString(), MovieResponse.class);
+    assertThat(updated.getGenres())
+        .extracting(Genre::getValue)
+        .containsExactlyInAnyOrder("ACTION", "DRAMA");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
   void create_movie_with_missing_duration_returns_400() throws Exception {
     ApiError error =
         createAsError(

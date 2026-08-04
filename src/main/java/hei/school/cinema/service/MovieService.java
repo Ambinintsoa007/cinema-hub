@@ -31,11 +31,14 @@ public class MovieService {
     String normalizedTitle = requireNotBlank(title, "Movie title must not be blank");
     String normalizedDescription =
         requireNotBlank(description, "Movie description must not be blank");
+
     requireGenres(genres);
     Duration movieDuration = requireValidDuration(duration);
+
     if (movieRepository.existsByTitleIgnoreCase(normalizedTitle)) {
       throw ApiException.conflict("Movie title already exists: " + normalizedTitle);
     }
+
     Movie movie =
         Movie.builder()
             .id(UUID.randomUUID())
@@ -44,6 +47,7 @@ public class MovieService {
             .duration(movieDuration)
             .genres(genres)
             .build();
+
     MovieEntity saved = movieRepository.save(movieMapper.toEntity(movie));
     return movieMapper.toDomain(saved);
   }
@@ -56,6 +60,7 @@ public class MovieService {
   @Transactional(readOnly = true)
   public Page<Movie> getAll(String title, Genre genre, int page, int pageSize) {
     GenreEntity genreEntity = genre == null ? null : movieMapper.toEntityGenre(genre);
+
     return movieRepository
         .findAllFiltered(title, genreEntity, PageRequest.of(page, pageSize))
         .map(movieMapper::toDomain);
@@ -64,28 +69,35 @@ public class MovieService {
   @Transactional
   public Movie update(
       UUID movieId, String title, String description, String duration, Set<Genre> genres) {
+
     MovieEntity entity = findEntity(movieId);
+
     String normalizedTitle = requireNotBlank(title, "Movie title must not be blank");
     String normalizedDescription =
         requireNotBlank(description, "Movie description must not be blank");
+
     requireGenres(genres);
     Duration newDuration = requireValidDuration(duration);
+
     if (!entity.getTitle().equalsIgnoreCase(normalizedTitle)
         && movieRepository.existsByTitleIgnoreCaseAndIdNot(normalizedTitle, movieId)) {
       throw ApiException.conflict("Movie title already exists: " + normalizedTitle);
     }
+
     if (newDuration.toSeconds() != entity.getDurationSeconds()
         && movieRepository.existsProjectionForMovie(movieId)) {
       throw ApiException.conflict(
           "Movie duration cannot be changed because it already has projections");
     }
+
     entity.setTitle(normalizedTitle);
     entity.setDescription(normalizedDescription);
     entity.setDurationSeconds(newDuration.toSeconds());
-    Set<MovieGenreEntity> newGenres = toGenreEntities(entity, genres);
-    entity.getGenres().clear();
-    entity.getGenres().addAll(newGenres);
-    return movieMapper.toDomain(movieRepository.save(entity));
+
+    updateGenres(entity, genres);
+
+    MovieEntity saved = movieRepository.save(entity);
+    return movieMapper.toDomain(saved);
   }
 
   private MovieEntity findEntity(UUID movieId) {
@@ -95,11 +107,13 @@ public class MovieService {
   }
 
   private String requireNotBlank(String value, String message) {
-    String trimmed = value == null ? "" : value.trim();
-    if (trimmed.isEmpty()) {
+    String trimmedValue = value == null ? "" : value.trim();
+
+    if (trimmedValue.isEmpty()) {
       throw ApiException.badRequest(message);
     }
-    return trimmed;
+
+    return trimmedValue;
   }
 
   private void requireGenres(Set<Genre> genres) {
@@ -112,31 +126,46 @@ public class MovieService {
     if (rawDuration == null || rawDuration.isBlank()) {
       throw ApiException.badRequest("Movie duration must not be blank");
     }
-    Duration parsed;
+
+    Duration parsedDuration;
+
     try {
-      parsed = Duration.parse(rawDuration);
+      parsedDuration = Duration.parse(rawDuration);
     } catch (DateTimeParseException e) {
       throw ApiException.badRequest("Invalid movie duration format: " + rawDuration);
     }
-    if (parsed.getNano() != 0) {
+
+    if (parsedDuration.getNano() != 0) {
       throw ApiException.badRequest("Movie duration must be a whole number of seconds");
     }
-    if (parsed.toSeconds() < 1) {
+
+    if (parsedDuration.toSeconds() < 1) {
       throw ApiException.badRequest("Movie duration must be at least one second");
     }
-    return parsed;
+
+    return parsedDuration;
   }
 
-  private Set<MovieGenreEntity> toGenreEntities(MovieEntity movie, Set<Genre> genres) {
-    return genres.stream()
+  private void updateGenres(MovieEntity movie, Set<Genre> genres) {
+    Set<GenreEntity> requestedGenres =
+        genres.stream().map(movieMapper::toEntityGenre).collect(Collectors.toSet());
+
+    movie
+        .getGenres()
+        .removeIf(movieGenre -> !requestedGenres.contains(movieGenre.getId().getGenre()));
+
+    Set<GenreEntity> existingGenres =
+        movie.getGenres().stream()
+            .map(movieGenre -> movieGenre.getId().getGenre())
+            .collect(Collectors.toSet());
+    requestedGenres.stream()
+        .filter(genre -> !existingGenres.contains(genre))
         .map(
             genre ->
                 MovieGenreEntity.builder()
-                    .id(
-                        new MovieGenreEntity.MovieGenreId(
-                            movie.getId(), movieMapper.toEntityGenre(genre)))
+                    .id(new MovieGenreEntity.MovieGenreId(movie.getId(), genre))
                     .movie(movie)
                     .build())
-        .collect(Collectors.toSet());
+        .forEach(movie.getGenres()::add);
   }
 }
