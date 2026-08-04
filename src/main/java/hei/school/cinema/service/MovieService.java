@@ -109,11 +109,17 @@ public class MovieService {
   }
 
   private Duration requireValidDuration(String rawDuration) {
+    if (rawDuration == null || rawDuration.isBlank()) {
+      throw ApiException.badRequest("Movie duration must not be blank");
+    }
     Duration parsed;
     try {
       parsed = Duration.parse(rawDuration);
     } catch (DateTimeParseException e) {
       throw ApiException.badRequest("Invalid movie duration format: " + rawDuration);
+    }
+    if (parsed.getNano() != 0) {
+      throw ApiException.badRequest("Movie duration must be a whole number of seconds");
     }
     if (parsed.toSeconds() < 1) {
       throw ApiException.badRequest("Movie duration must be at least one second");

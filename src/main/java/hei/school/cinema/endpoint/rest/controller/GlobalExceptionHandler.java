@@ -60,6 +60,18 @@ public class GlobalExceptionHandler {
     return toResponse(HttpStatus.CONFLICT, "CONFLICT", "Data integrity violation", request);
   }
 
+  @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+  public ResponseEntity<ApiError> handleAccessDenied(
+      org.springframework.security.access.AccessDeniedException e, HttpServletRequest request) {
+    return toResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied", request);
+  }
+
+  @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+  public ResponseEntity<ApiError> handleAuthentication(
+      org.springframework.security.core.AuthenticationException e, HttpServletRequest request) {
+    return toResponse(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Authentication required", request);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiError> handleUnexpected(Exception e, HttpServletRequest request) {
     log.error("Unexpected error", e);

@@ -134,6 +134,36 @@ class MovieServiceTest {
   }
 
   @Test
+  void create_should_reject_null_duration() {
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.create("Movie", "desc", null, Set.of(Genre.DRAMA)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void create_should_reject_blank_duration() {
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.create("Movie", "desc", "   ", Set.of(Genre.DRAMA)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void create_should_reject_fractional_duration() {
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.create("Movie", "desc", "PT1.5S", Set.of(Genre.DRAMA)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
   void create_should_reject_duration_below_one_second() {
     ApiException exception =
         assertThrows(
@@ -282,6 +312,72 @@ class MovieServiceTest {
             () -> movieService.update(MOVIE_ID, "Inception", "Desc", "PT2H", Set.of(Genre.ACTION)));
 
     assertEquals(404, exception.getStatus().value());
+  }
+
+  @Test
+  void update_should_reject_blank_description() {
+    when(movieRepository.findById(MOVIE_ID))
+        .thenReturn(Optional.of(entityOf(MOVIE_ID, "Inception", 8100L)));
+
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.update(MOVIE_ID, "Inception", "  ", "PT2H", Set.of(Genre.ACTION)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void update_should_reject_empty_genres() {
+    when(movieRepository.findById(MOVIE_ID))
+        .thenReturn(Optional.of(entityOf(MOVIE_ID, "Inception", 8100L)));
+
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.update(MOVIE_ID, "Inception", "Desc", "PT2H", Set.of()));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void update_should_reject_fractional_duration() {
+    when(movieRepository.findById(MOVIE_ID))
+        .thenReturn(Optional.of(entityOf(MOVIE_ID, "Inception", 8100L)));
+
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () ->
+                movieService.update(MOVIE_ID, "Inception", "Desc", "PT1.5S", Set.of(Genre.ACTION)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void update_should_reject_blank_duration() {
+    when(movieRepository.findById(MOVIE_ID))
+        .thenReturn(Optional.of(entityOf(MOVIE_ID, "Inception", 8100L)));
+
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.update(MOVIE_ID, "Inception", "Desc", "   ", Set.of(Genre.ACTION)));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
+  void update_should_reject_null_duration() {
+    when(movieRepository.findById(MOVIE_ID))
+        .thenReturn(Optional.of(entityOf(MOVIE_ID, "Inception", 8100L)));
+
+    ApiException exception =
+        assertThrows(
+            ApiException.class,
+            () -> movieService.update(MOVIE_ID, "Inception", "Desc", null, Set.of(Genre.ACTION)));
+
+    assertEquals(400, exception.getStatus().value());
   }
 
   private MovieEntity entityOf(UUID id, String title, long durationSeconds) {
