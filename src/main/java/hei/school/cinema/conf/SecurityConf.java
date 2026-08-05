@@ -30,7 +30,7 @@ public class SecurityConf {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(HttpMethod.GET, "/movies/**")
+                auth.requestMatchers(HttpMethod.GET, "/movies/**", "/rooms/**")
                     .permitAll()
                     .requestMatchers("/ping", "/health/**")
                     .permitAll()
