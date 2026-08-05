@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: cinema-hub
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-seconds: 3600
+
+  initial-manager:
+    first-name: ${INITIAL_MANAGER_FIRST_NAME:}
+    last-name: ${INITIAL_MANAGER_LAST_NAME:}
+    birthdate: ${INITIAL_MANAGER_BIRTHDATE:}
+    email: ${INITIAL_MANAGER_EMAIL:}
+    phone: ${INITIAL_MANAGER_PHONE:}
+    password: ${INITIAL_MANAGER_PASSWORD:}
