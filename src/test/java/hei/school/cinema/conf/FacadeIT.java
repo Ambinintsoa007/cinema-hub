@@ -8,14 +8,12 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @PojaGenerated
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Slf4j
-@ActiveProfiles("test")
 public class FacadeIT {
 
   private static final PostgresConf POSTGRES_CONF = new PostgresConf();
