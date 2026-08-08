@@ -145,6 +145,73 @@ class RoomControllerSecurityIT extends FacadeIT {
   }
 
   @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_twenty_seven_rows_returns_400() throws Exception {
+    ApiError error = errorAsError(Map.of("number", "Salle A", "rows", 27, "seatsPerRow", 1), 400);
+
+    assertThat(error.getType()).isEqualTo("BAD_REQUEST");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_twenty_six_rows_returns_201() throws Exception {
+    MvcResult createdResult =
+        mockMvc
+            .perform(
+                post("/rooms")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(toJson(Map.of("number", "Salle Z", "rows", 26, "seatsPerRow", 1))))
+            .andExpect(status().isCreated())
+            .andReturn();
+    RoomResponse room =
+        objectMapper.readValue(
+            createdResult.getResponse().getContentAsString(), RoomResponse.class);
+    assertThat(room.getCapacity()).isEqualTo(26);
+
+    MvcResult seatsResult =
+        mockMvc
+            .perform(get("/rooms/" + room.getId() + "/seats"))
+            .andExpect(status().isOk())
+            .andReturn();
+    SeatResponse[] seats =
+        objectMapper.readValue(
+            seatsResult.getResponse().getContentAsString(), SeatResponse[].class);
+    assertThat(seats).hasSize(26);
+    assertThat(seats[0].getNumber()).isEqualTo("A1");
+    assertThat(seats[25].getNumber()).isEqualTo("Z1");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_eleven_seats_per_row_orders_naturally() throws Exception {
+    MvcResult createdResult =
+        mockMvc
+            .perform(
+                post("/rooms")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(toJson(Map.of("number", "Salle 11", "rows", 1, "seatsPerRow", 11))))
+            .andExpect(status().isCreated())
+            .andReturn();
+    RoomResponse room =
+        objectMapper.readValue(
+            createdResult.getResponse().getContentAsString(), RoomResponse.class);
+    assertThat(room.getCapacity()).isEqualTo(11);
+
+    MvcResult seatsResult =
+        mockMvc
+            .perform(get("/rooms/" + room.getId() + "/seats"))
+            .andExpect(status().isOk())
+            .andReturn();
+    SeatResponse[] seats =
+        objectMapper.readValue(
+            seatsResult.getResponse().getContentAsString(), SeatResponse[].class);
+    assertThat(seats).hasSize(11);
+    assertThat(seats)
+        .extracting(SeatResponse::getNumber)
+        .containsExactly("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11");
+  }
+
+  @Test
   void get_room_seats_is_public_without_authentication() throws Exception {
     RoomEntity room =
         roomRepository

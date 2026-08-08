@@ -87,6 +87,30 @@ class RoomServiceTest {
   }
 
   @Test
+  void create_should_accept_twenty_six_rows() {
+    when(roomRepository.existsByNumberIgnoreCase("Salle A")).thenReturn(false);
+    when(roomRepository.save(any(RoomEntity.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Room created = roomService.create("Salle A", 26, 1);
+
+    assertEquals(26, created.getCapacity());
+    ArgumentCaptor<RoomEntity> captor = ArgumentCaptor.forClass(RoomEntity.class);
+    org.mockito.Mockito.verify(roomRepository).save(captor.capture());
+    Set<SeatEntity> seats = captor.getValue().getSeats();
+    assertThat(seats).hasSize(26);
+    assertThat(seats).extracting(SeatEntity::getNumber).contains("A1", "Z1");
+  }
+
+  @Test
+  void create_should_reject_twenty_seven_rows() {
+    ApiException exception =
+        assertThrows(ApiException.class, () -> roomService.create("Salle A", 27, 1));
+
+    assertEquals(400, exception.getStatus().value());
+  }
+
+  @Test
   void create_should_reject_duplicate_number() {
     when(roomRepository.existsByNumberIgnoreCase("salle a")).thenReturn(true);
 
@@ -117,16 +141,15 @@ class RoomServiceTest {
   }
 
   @Test
-  void getSeats_should_return_seats_ordered_by_number() {
-    when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(entityOf(ROOM_ID, "SALLE1", 2)));
-    when(seatRepository.findByRoom_IdOrderByNumberAsc(ROOM_ID))
-        .thenReturn(List.of(seatOf("A1"), seatOf("A2")));
+  void getSeats_should_return_seats_in_natural_order() {
+    when(roomRepository.findById(ROOM_ID)).thenReturn(Optional.of(entityOf(ROOM_ID, "SALLE1", 11)));
+    when(seatRepository.findByRoom_Id(ROOM_ID))
+        .thenReturn(
+            List.of(seatOf("A2"), seatOf("A10"), seatOf("A1"), seatOf("B1"), seatOf("A11")));
 
     List<Seat> seats = roomService.getSeats(ROOM_ID);
 
-    assertEquals(2, seats.size());
-    assertEquals("A1", seats.get(0).getNumber());
-    assertEquals(ROOM_ID, seats.get(0).getRoomId());
+    assertThat(seats).extracting(Seat::getNumber).containsExactly("A1", "A2", "A10", "A11", "B1");
   }
 
   @Test
