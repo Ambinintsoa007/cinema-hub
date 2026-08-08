@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
 
-  List<SeatEntity> findByRoom_IdOrderByNumberAsc(UUID roomId);
+  List<SeatEntity> findByRoom_Id(UUID roomId);
 }

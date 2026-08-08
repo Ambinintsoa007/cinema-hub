@@ -8,6 +8,7 @@ import hei.school.cinema.repository.RoomRepository;
 import hei.school.cinema.repository.SeatRepository;
 import hei.school.cinema.repository.model.RoomEntity;
 import hei.school.cinema.repository.model.SeatEntity;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +61,10 @@ public class RoomService {
   @Transactional(readOnly = true)
   public List<Seat> getSeats(UUID roomId) {
     findEntity(roomId);
-    return seatRepository.findByRoom_IdOrderByNumberAsc(roomId).stream()
+    return seatRepository.findByRoom_Id(roomId).stream()
+        .sorted(
+            Comparator.comparingInt((SeatEntity seat) -> seat.getNumber().charAt(0))
+                .thenComparingInt(seat -> Integer.parseInt(seat.getNumber().substring(1))))
         .map(roomMapper::toDomain)
         .toList();
   }
