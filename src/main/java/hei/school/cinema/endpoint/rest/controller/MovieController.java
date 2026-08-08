@@ -1,11 +1,10 @@
 package hei.school.cinema.endpoint.rest.controller;
 
-import hei.school.cinema.gen.api.MoviesApi;
-import hei.school.cinema.gen.model.CreateMovieRequest;
-import hei.school.cinema.gen.model.Genre;
-import hei.school.cinema.gen.model.MoviePageResponse;
-import hei.school.cinema.gen.model.MovieResponse;
-import hei.school.cinema.gen.model.UpdateMovieRequest;
+import hei.school.cinema.endpoint.rest.dto.CreateMovieRequest;
+import hei.school.cinema.endpoint.rest.dto.Genre;
+import hei.school.cinema.endpoint.rest.dto.MoviePageResponse;
+import hei.school.cinema.endpoint.rest.dto.MovieResponse;
+import hei.school.cinema.endpoint.rest.dto.UpdateMovieRequest;
 import hei.school.cinema.mapper.MovieMapper;
 import hei.school.cinema.model.Movie;
 import hei.school.cinema.service.MovieService;
@@ -17,8 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/movies")
 @RequiredArgsConstructor
-public class MovieController implements MoviesApi {
+public class MovieController {
 
   private final MovieService movieService;
   private final MovieMapper movieMapper;
@@ -26,42 +26,58 @@ public class MovieController implements MoviesApi {
   @Override
   public ResponseEntity<MovieResponse> createMovie(CreateMovieRequest createMovieRequest) {
     Movie created =
-        movieService.create(
-            createMovieRequest.getTitle(),
-            createMovieRequest.getDescription(),
-            createMovieRequest.getDuration(),
-            movieMapper.toDomainGenres(createMovieRequest.getGenres()));
+            movieService.create(
+                    createMovieRequest.getTitle(),
+                    createMovieRequest.getDescription(),
+                    createMovieRequest.getDuration(),
+                    movieMapper.toDomainGenres(createMovieRequest.getGenres()));
+
     return ResponseEntity.status(201).body(movieMapper.toDto(created));
   }
 
-  @Override
-  public ResponseEntity<MovieResponse> getMovieById(UUID movieId) {
+  @GetMapping("/{movieId}")
+  public ResponseEntity<MovieResponse> getMovieById(@PathVariable UUID movieId) {
     return ResponseEntity.ok(movieMapper.toDto(movieService.getById(movieId)));
   }
 
-  @Override
+  @GetMapping
   public ResponseEntity<MoviePageResponse> getMovies(
-      Integer page, Integer pageSize, String title, Genre genre) {
+          @RequestParam(defaultValue = "0") Integer page,
+          @RequestParam(defaultValue = "20") Integer pageSize,
+          @RequestParam(required = false) String title,
+          @RequestParam(required = false) Genre genre) {
+
     Page<Movie> movies =
-        movieService.getAll(
-            title, genre == null ? null : movieMapper.toDomainGenre(genre), page, pageSize);
+            movieService.getAll(
+                    title,
+                    genre == null ? null : movieMapper.toDomainGenre(genre),
+                    page,
+                    pageSize);
+
     List<MovieResponse> data = movies.stream().map(movieMapper::toDto).toList();
-    MoviePageResponse response =
-        new MoviePageResponse(
-            data, page, pageSize, movies.getTotalElements(), movies.getTotalPages());
-    return ResponseEntity.ok(response);
+
+    return ResponseEntity.ok(
+            new MoviePageResponse(
+                    data,
+                    page,
+                    pageSize,
+                    movies.getTotalElements(),
+                    movies.getTotalPages()));
   }
 
   @Override
   public ResponseEntity<MovieResponse> updateMovie(
-      UUID movieId, UpdateMovieRequest updateMovieRequest) {
+          @PathVariable UUID movieId,
+          @RequestBody UpdateMovieRequest updateMovieRequest) {
+
     Movie updated =
-        movieService.update(
-            movieId,
-            updateMovieRequest.getTitle(),
-            updateMovieRequest.getDescription(),
-            updateMovieRequest.getDuration(),
-            movieMapper.toDomainGenres(updateMovieRequest.getGenres()));
+            movieService.update(
+                    movieId,
+                    updateMovieRequest.getTitle(),
+                    updateMovieRequest.getDescription(),
+                    updateMovieRequest.getDuration(),
+                    movieMapper.toDomainGenres(updateMovieRequest.getGenres()));
+
     return ResponseEntity.ok(movieMapper.toDto(updated));
   }
 }

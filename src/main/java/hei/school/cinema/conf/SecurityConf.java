@@ -1,7 +1,7 @@
 package hei.school.cinema.conf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hei.school.cinema.gen.model.ApiError;
+import hei.school.cinema.endpoint.rest.dto.ApiError;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,7 +16,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConf {
 
@@ -63,20 +61,17 @@ public class SecurityConf {
   }
 
   private void writeError(
-      String path, HttpServletResponse response, String type, String message, int status) {
+          String path, HttpServletResponse response, String type, String message, int status) {
     try {
       response.setStatus(status);
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
       ApiError error =
-          new ApiError()
-              .type(type)
-              .message(message)
-              .status(status)
-              .timestamp(OffsetDateTime.now())
-              .path(path);
+              new ApiError(type, message, status, OffsetDateTime.now(), path);
+
       objectMapper.writeValue(response.getWriter(), error);
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+    } catch (Exception exception) {
+      throw new IllegalStateException("Unable to write security error response", exception);
     }
   }
 }
