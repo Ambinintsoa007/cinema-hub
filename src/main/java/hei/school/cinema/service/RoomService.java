@@ -32,6 +32,9 @@ public class RoomService {
     String normalizedNumber = requireNotBlank(number, "Room number must not be blank");
     requirePositive(rows, "Room rows must be at least one");
     requirePositive(seatsPerRow, "Room seats-per-row must be at least one");
+    if (rows > 26) {
+      throw ApiException.badRequest("Room rows must be at most 26");
+    }
     if (roomRepository.existsByNumberIgnoreCase(normalizedNumber)) {
       throw ApiException.conflict("Room number already exists: " + normalizedNumber);
     }
