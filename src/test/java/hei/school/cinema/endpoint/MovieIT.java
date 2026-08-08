@@ -3,10 +3,10 @@ package hei.school.cinema.endpoint;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import hei.school.cinema.conf.FacadeIT;
-import hei.school.cinema.gen.model.ApiError;
-import hei.school.cinema.gen.model.Genre;
-import hei.school.cinema.gen.model.MoviePageResponse;
-import hei.school.cinema.gen.model.MovieResponse;
+import hei.school.cinema.endpoint.rest.dto.ApiError;
+import hei.school.cinema.endpoint.rest.dto.Genre;
+import hei.school.cinema.endpoint.rest.dto.MoviePageResponse;
+import hei.school.cinema.endpoint.rest.dto.MovieResponse;
 import hei.school.cinema.repository.MovieRepository;
 import hei.school.cinema.repository.model.GenreEntity;
 import hei.school.cinema.repository.model.MovieEntity;

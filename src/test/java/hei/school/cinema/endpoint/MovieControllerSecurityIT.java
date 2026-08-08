@@ -7,9 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.school.cinema.conf.FacadeIT;
-import hei.school.cinema.gen.model.ApiError;
-import hei.school.cinema.gen.model.Genre;
-import hei.school.cinema.gen.model.MovieResponse;
+import hei.school.cinema.endpoint.rest.dto.ApiError;
+import hei.school.cinema.endpoint.rest.dto.Genre;
+import hei.school.cinema.endpoint.rest.dto.MovieResponse;
 import hei.school.cinema.repository.MovieRepository;
 import hei.school.cinema.repository.model.GenreEntity;
 import hei.school.cinema.repository.model.MovieEntity;
@@ -178,7 +178,7 @@ class MovieControllerSecurityIT extends FacadeIT {
         objectMapper.readValue(result.getResponse().getContentAsString(), MovieResponse.class);
     assertThat(updated.getTitle()).isEqualTo("Inception 2");
     assertThat(updated.getDuration()).isEqualTo("PT2H30M");
-    assertThat(updated.getGenres()).extracting(Genre::getValue).containsExactly("THRILLER");
+    assertThat(updated.getGenres()).extracting(Genre::name).containsExactly("THRILLER");
   }
 
   @Test
@@ -206,7 +206,7 @@ class MovieControllerSecurityIT extends FacadeIT {
         objectMapper.readValue(
             createdResult.getResponse().getContentAsString(), MovieResponse.class);
     assertThat(created.getGenres())
-        .extracting(Genre::getValue)
+        .extracting(Genre::name)
         .containsExactlyInAnyOrder("ACTION", "SCI_FI");
 
     MvcResult result =
@@ -231,7 +231,7 @@ class MovieControllerSecurityIT extends FacadeIT {
     MovieResponse updated =
         objectMapper.readValue(result.getResponse().getContentAsString(), MovieResponse.class);
     assertThat(updated.getGenres())
-        .extracting(Genre::getValue)
+        .extracting(Genre::name)
         .containsExactlyInAnyOrder("ACTION", "DRAMA");
   }
 
