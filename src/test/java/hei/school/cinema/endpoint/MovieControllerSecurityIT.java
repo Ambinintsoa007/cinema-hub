@@ -44,6 +44,16 @@ class MovieControllerSecurityIT extends FacadeIT {
     jdbcTemplate.update("DELETE FROM projections");
     jdbcTemplate.update("DELETE FROM movie_genres");
     jdbcTemplate.update("DELETE FROM movies");
+
+    jdbcTemplate.update(
+            """
+            INSERT INTO rooms (id, number, capacity)
+            VALUES (?, ?, ?)
+            ON CONFLICT (id) DO NOTHING
+            """,
+            ROOM_ID,
+            "MOVIE_TEST_ROOM",
+            1);
   }
 
   @Test

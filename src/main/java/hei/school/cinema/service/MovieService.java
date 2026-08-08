@@ -59,11 +59,20 @@ public class MovieService {
 
   @Transactional(readOnly = true)
   public Page<Movie> getAll(String title, Genre genre, int page, int pageSize) {
-    GenreEntity genreEntity = genre == null ? null : movieMapper.toEntityGenre(genre);
+    if (page < 0) {
+      throw ApiException.badRequest("Page must be greater than or equal to 0");
+    }
+
+    if (pageSize < 1 || pageSize > 100) {
+      throw ApiException.badRequest("Page size must be between 1 and 100");
+    }
+
+    GenreEntity genreEntity =
+            genre == null ? null : movieMapper.toEntityGenre(genre);
 
     return movieRepository
-        .findAllFiltered(title, genreEntity, PageRequest.of(page, pageSize))
-        .map(movieMapper::toDomain);
+            .findAllFiltered(title, genreEntity, PageRequest.of(page, pageSize))
+            .map(movieMapper::toDomain);
   }
 
   @Transactional
