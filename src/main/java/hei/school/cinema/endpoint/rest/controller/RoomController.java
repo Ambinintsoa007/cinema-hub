@@ -13,7 +13,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,7 +23,6 @@ public class RoomController implements RoomsApi {
   private final RoomMapper roomMapper;
 
   @Override
-  @PreAuthorize("hasRole('MANAGER')")
   public ResponseEntity<RoomResponse> createRoom(CreateRoomRequest createRoomRequest) {
     Room created =
         roomService.create(

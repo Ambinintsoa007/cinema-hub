@@ -14,7 +14,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,7 +24,6 @@ public class MovieController implements MoviesApi {
   private final MovieMapper movieMapper;
 
   @Override
-  @PreAuthorize("hasRole('MANAGER')")
   public ResponseEntity<MovieResponse> createMovie(CreateMovieRequest createMovieRequest) {
     Movie created =
         movieService.create(
@@ -55,7 +53,6 @@ public class MovieController implements MoviesApi {
   }
 
   @Override
-  @PreAuthorize("hasRole('MANAGER')")
   public ResponseEntity<MovieResponse> updateMovie(
       UUID movieId, UpdateMovieRequest updateMovieRequest) {
     Movie updated =

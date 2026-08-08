@@ -32,6 +32,10 @@ public class SecurityConf {
             auth ->
                 auth.requestMatchers(HttpMethod.GET, "/movies/**", "/rooms/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/movies", "/rooms")
+                    .hasRole("MANAGER")
+                    .requestMatchers(HttpMethod.PUT, "/movies/**")
+                    .hasRole("MANAGER")
                     .requestMatchers("/ping", "/health/**")
                     .permitAll()
                     .anyRequest()
