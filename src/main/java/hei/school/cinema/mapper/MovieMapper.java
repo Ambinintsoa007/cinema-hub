@@ -78,6 +78,10 @@ public class MovieMapper {
   }
 
   public Set<hei.school.cinema.model.Genre> toDomainGenres(Set<Genre> dtoGenres) {
+    if (dtoGenres == null) {
+      return null;
+    }
+
     return dtoGenres.stream().map(this::toDomainGenre).collect(Collectors.toSet());
   }
 }
