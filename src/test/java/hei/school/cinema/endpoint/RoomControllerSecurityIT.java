@@ -145,7 +145,6 @@ class RoomControllerSecurityIT extends FacadeIT {
   }
 
   @Test
-  @WithMockUser(roles = "MANAGER")
   void get_room_seats_is_public_without_authentication() throws Exception {
     RoomEntity room =
         roomRepository
