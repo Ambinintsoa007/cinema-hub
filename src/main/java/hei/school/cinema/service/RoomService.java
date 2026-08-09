@@ -28,7 +28,7 @@ public class RoomService {
   private final RoomMapper roomMapper;
 
   @Transactional
-  public Room create(String number, int rows, int seatsPerRow) {
+  public Room create(String number, Integer rows, Integer seatsPerRow) {
     String normalizedNumber = requireNotBlank(number, "Room number must not be blank");
     requirePositive(rows, "Room rows must be at least one");
     requirePositive(seatsPerRow, "Room seats-per-row must be at least one");
@@ -111,8 +111,8 @@ public class RoomService {
     return trimmed;
   }
 
-  private void requirePositive(int value, String message) {
-    if (value < 1) {
+  private void requirePositive(Integer value, String message) {
+    if (value == null || value < 1) {
       throw ApiException.badRequest(message);
     }
   }
