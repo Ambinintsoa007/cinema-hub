@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateUserStatusRequest {
 
-    private UserStatus status;
+  private UserStatus status;
 }

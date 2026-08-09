@@ -23,51 +23,47 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
+  private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
+  private final JwtService jwtService;
+  private final UserRepository userRepository;
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+    String authorizationHeader = request.getHeader("Authorization");
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = authorizationHeader.substring(BEARER_PREFIX.length());
-
-        try {
-            UUID userId = jwtService.extractUserId(token);
-
-            UserEntity user = userRepository.findById(userId).orElse(null);
-
-            if (user != null
-                    && user.getStatus() == UserStatusEntity.ACTIVE
-                    && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                SimpleGrantedAuthority authority =
-                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
-
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user.getId().toString(),
-                                null,
-                                List.of(authority));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (JwtException | IllegalArgumentException ignored) {
-            SecurityContextHolder.clearContext();
-        }
-
-        filterChain.doFilter(request, response);
+    if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)) {
+      filterChain.doFilter(request, response);
+      return;
     }
+
+    String token = authorizationHeader.substring(BEARER_PREFIX.length());
+
+    try {
+      UUID userId = jwtService.extractUserId(token);
+
+      UserEntity user = userRepository.findById(userId).orElse(null);
+
+      if (user != null
+          && user.getStatus() == UserStatusEntity.ACTIVE
+          && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+        SimpleGrantedAuthority authority =
+            new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
+
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(
+                user.getId().toString(), null, List.of(authority));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+      }
+    } catch (JwtException | IllegalArgumentException ignored) {
+      SecurityContextHolder.clearContext();
+    }
+
+    filterChain.doFilter(request, response);
+  }
 }

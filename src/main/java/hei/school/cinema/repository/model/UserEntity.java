@@ -23,33 +23,33 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserEntity {
 
-    @Id
-    @Column(name = "id")
-    private UUID id;
+  @Id
+  @Column(name = "id")
+  private UUID id;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
+  @Column(name = "first_name", nullable = false)
+  private String firstName;
 
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
+  @Column(name = "last_name", nullable = false)
+  private String lastName;
 
-    @Column(name = "birthdate", nullable = false)
-    private LocalDate birthdate;
+  @Column(name = "birthdate", nullable = false)
+  private LocalDate birthdate;
 
-    @Column(name = "email", nullable = false)
-    private String email;
+  @Column(name = "email", nullable = false)
+  private String email;
 
-    @Column(name = "phone", nullable = false)
-    private String phone;
+  @Column(name = "phone", nullable = false)
+  private String phone;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+  @Column(name = "password_hash", nullable = false)
+  private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private UserRoleEntity role;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "role", nullable = false)
+  private UserRoleEntity role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private UserStatusEntity status;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private UserStatusEntity status;
 }

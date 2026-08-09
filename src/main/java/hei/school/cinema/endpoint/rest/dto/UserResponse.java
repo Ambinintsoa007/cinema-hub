@@ -13,12 +13,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserResponse {
 
-    private UUID id;
-    private String firstName;
-    private String lastName;
-    private LocalDate birthdate;
-    private String email;
-    private String phone;
-    private UserRole role;
-    private UserStatus status;
+  private UUID id;
+  private String firstName;
+  private String lastName;
+  private LocalDate birthdate;
+  private String email;
+  private String phone;
+  private UserRole role;
+  private UserStatus status;
 }

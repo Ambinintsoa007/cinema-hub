@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateUserRoleRequest {
 
-    private UserRole role;
+  private UserRole role;
 }

@@ -22,111 +22,110 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+  private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final UserMapper userMapper;
+  private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public User register(RegisterRequest request) {
-        validateRegisterRequest(request);
+  @Transactional
+  public User register(RegisterRequest request) {
+    validateRegisterRequest(request);
 
-        String email = normalizeEmail(request.getEmail());
+    String email = normalizeEmail(request.getEmail());
 
-        if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw ApiException.conflict("Email is already used");
-        }
-
-        User user =
-                User.builder()
-                        .id(UUID.randomUUID())
-                        .firstName(request.getFirstName().trim())
-                        .lastName(request.getLastName().trim())
-                        .birthdate(request.getBirthdate())
-                        .email(email)
-                        .phone(request.getPhone().trim())
-                        .passwordHash(passwordEncoder.encode(request.getPassword()))
-                        .role(UserRole.CLIENT)
-                        .status(UserStatus.ACTIVE)
-                        .build();
-
-        return userMapper.toDomain(userRepository.save(userMapper.toEntity(user)));
+    if (userRepository.existsByEmailIgnoreCase(email)) {
+      throw ApiException.conflict("Email is already used");
     }
 
-    @Transactional(readOnly = true)
-    public User authenticate(LoginRequest request) {
-        validateLoginRequest(request);
+    User user =
+        User.builder()
+            .id(UUID.randomUUID())
+            .firstName(request.getFirstName().trim())
+            .lastName(request.getLastName().trim())
+            .birthdate(request.getBirthdate())
+            .email(email)
+            .phone(request.getPhone().trim())
+            .passwordHash(passwordEncoder.encode(request.getPassword()))
+            .role(UserRole.CLIENT)
+            .status(UserStatus.ACTIVE)
+            .build();
 
-        String email = normalizeEmail(request.getEmail());
+    return userMapper.toDomain(userRepository.save(userMapper.toEntity(user)));
+  }
 
-        UserEntity userEntity =
-                userRepository
-                        .findByEmailIgnoreCase(email)
-                        .orElseThrow(() -> ApiException.unauthorized("Invalid credentials"));
+  @Transactional(readOnly = true)
+  public User authenticate(LoginRequest request) {
+    validateLoginRequest(request);
 
-        User user = userMapper.toDomain(userEntity);
+    String email = normalizeEmail(request.getEmail());
 
-        if (user.getStatus() == UserStatus.DISABLED) {
-            throw ApiException.unauthorized("Account is disabled");
-        }
+    UserEntity userEntity =
+        userRepository
+            .findByEmailIgnoreCase(email)
+            .orElseThrow(() -> ApiException.unauthorized("Invalid credentials"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw ApiException.unauthorized("Invalid credentials");
-        }
+    User user = userMapper.toDomain(userEntity);
 
-        return user;
+    if (user.getStatus() == UserStatus.DISABLED) {
+      throw ApiException.unauthorized("Account is disabled");
     }
 
-    private void validateRegisterRequest(RegisterRequest request) {
-        if (request == null) {
-            throw ApiException.badRequest("Registration data must not be null");
-        }
-
-        requireNotBlank(request.getFirstName(), "First name must not be blank");
-        requireNotBlank(request.getLastName(), "Last name must not be blank");
-        requireNotBlank(request.getEmail(), "Email must not be blank");
-        requireNotBlank(request.getPhone(), "Phone must not be blank");
-        requireNotBlank(request.getPassword(), "Password must not be blank");
-
-        if (request.getBirthdate() == null) {
-            throw ApiException.badRequest("Birthdate must not be null");
-        }
-
-        if (!request.getBirthdate().isBefore(LocalDate.now())) {
-            throw ApiException.badRequest("Birthdate must be in the past");
-        }
-
-        if (!EMAIL_PATTERN.matcher(request.getEmail().trim()).matches()) {
-            throw ApiException.badRequest("Invalid email format");
-        }
-
-        if (request.getPassword().length() < 8) {
-            throw ApiException.badRequest("Password must contain at least 8 characters");
-        }
+    if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+      throw ApiException.unauthorized("Invalid credentials");
     }
 
-    private void validateLoginRequest(LoginRequest request) {
-        if (request == null) {
-            throw ApiException.badRequest("Login data must not be null");
-        }
+    return user;
+  }
 
-        requireNotBlank(request.getEmail(), "Email must not be blank");
-        requireNotBlank(request.getPassword(), "Password must not be blank");
-
-        if (!EMAIL_PATTERN.matcher(request.getEmail().trim()).matches()) {
-            throw ApiException.badRequest("Invalid email format");
-        }
+  private void validateRegisterRequest(RegisterRequest request) {
+    if (request == null) {
+      throw ApiException.badRequest("Registration data must not be null");
     }
 
-    private String normalizeEmail(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
+    requireNotBlank(request.getFirstName(), "First name must not be blank");
+    requireNotBlank(request.getLastName(), "Last name must not be blank");
+    requireNotBlank(request.getEmail(), "Email must not be blank");
+    requireNotBlank(request.getPhone(), "Phone must not be blank");
+    requireNotBlank(request.getPassword(), "Password must not be blank");
+
+    if (request.getBirthdate() == null) {
+      throw ApiException.badRequest("Birthdate must not be null");
     }
 
-    private void requireNotBlank(String value, String message) {
-        if (value == null || value.trim().isEmpty()) {
-            throw ApiException.badRequest(message);
-        }
+    if (!request.getBirthdate().isBefore(LocalDate.now())) {
+      throw ApiException.badRequest("Birthdate must be in the past");
     }
+
+    if (!EMAIL_PATTERN.matcher(request.getEmail().trim()).matches()) {
+      throw ApiException.badRequest("Invalid email format");
+    }
+
+    if (request.getPassword().length() < 8) {
+      throw ApiException.badRequest("Password must contain at least 8 characters");
+    }
+  }
+
+  private void validateLoginRequest(LoginRequest request) {
+    if (request == null) {
+      throw ApiException.badRequest("Login data must not be null");
+    }
+
+    requireNotBlank(request.getEmail(), "Email must not be blank");
+    requireNotBlank(request.getPassword(), "Password must not be blank");
+
+    if (!EMAIL_PATTERN.matcher(request.getEmail().trim()).matches()) {
+      throw ApiException.badRequest("Invalid email format");
+    }
+  }
+
+  private String normalizeEmail(String email) {
+    return email.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private void requireNotBlank(String value, String message) {
+    if (value == null || value.trim().isEmpty()) {
+      throw ApiException.badRequest(message);
+    }
+  }
 }

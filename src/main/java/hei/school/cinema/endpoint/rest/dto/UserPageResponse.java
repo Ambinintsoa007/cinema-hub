@@ -12,9 +12,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserPageResponse {
 
-    private List<UserResponse> data;
-    private Integer page;
-    private Integer pageSize;
-    private Long totalElements;
-    private Integer totalPages;
+  private List<UserResponse> data;
+  private Integer page;
+  private Integer pageSize;
+  private Long totalElements;
+  private Integer totalPages;
 }

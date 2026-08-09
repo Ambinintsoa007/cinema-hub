@@ -20,89 +20,88 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
+  private final UserRepository userRepository;
+  private final UserMapper userMapper;
 
-    @Transactional(readOnly = true)
-    public User getById(UUID userId) {
-        return userMapper.toDomain(findEntity(userId));
+  @Transactional(readOnly = true)
+  public User getById(UUID userId) {
+    return userMapper.toDomain(findEntity(userId));
+  }
+
+  @Transactional(readOnly = true)
+  public Page<User> getAll(int page, int pageSize, UserRole role, UserStatus status) {
+    validatePagination(page, pageSize);
+
+    return userRepository
+        .findAllFiltered(
+            userMapper.toEntityRole(role),
+            userMapper.toEntityStatus(status),
+            PageRequest.of(page, pageSize))
+        .map(userMapper::toDomain);
+  }
+
+  @Transactional
+  public User updateRole(UUID userId, UserRole newRole) {
+    if (newRole == null) {
+      throw ApiException.badRequest("User role must not be null");
     }
 
-    @Transactional(readOnly = true)
-    public Page<User> getAll(int page, int pageSize, UserRole role, UserStatus status) {
-        validatePagination(page, pageSize);
+    UserEntity user = findEntity(userId);
 
-        return userRepository
-                .findAllFiltered(
-                        userMapper.toEntityRole(role),
-                        userMapper.toEntityStatus(status),
-                        PageRequest.of(page, pageSize))
-                .map(userMapper::toDomain);
+    boolean demotingActiveManager =
+        user.getRole() == UserRoleEntity.MANAGER
+            && user.getStatus() == UserStatusEntity.ACTIVE
+            && newRole != UserRole.MANAGER;
+
+    if (demotingActiveManager && isLastActiveManager()) {
+      throw ApiException.conflict("The last active manager cannot be demoted");
     }
 
-    @Transactional
-    public User updateRole(UUID userId, UserRole newRole) {
-        if (newRole == null) {
-            throw ApiException.badRequest("User role must not be null");
-        }
+    user.setRole(userMapper.toEntityRole(newRole));
 
-        UserEntity user = findEntity(userId);
+    return userMapper.toDomain(userRepository.save(user));
+  }
 
-        boolean demotingActiveManager =
-                user.getRole() == UserRoleEntity.MANAGER
-                        && user.getStatus() == UserStatusEntity.ACTIVE
-                        && newRole != UserRole.MANAGER;
-
-        if (demotingActiveManager && isLastActiveManager()) {
-            throw ApiException.conflict("The last active manager cannot be demoted");
-        }
-
-        user.setRole(userMapper.toEntityRole(newRole));
-
-        return userMapper.toDomain(userRepository.save(user));
+  @Transactional
+  public User updateStatus(UUID userId, UserStatus newStatus) {
+    if (newStatus == null) {
+      throw ApiException.badRequest("User status must not be null");
     }
 
-    @Transactional
-    public User updateStatus(UUID userId, UserStatus newStatus) {
-        if (newStatus == null) {
-            throw ApiException.badRequest("User status must not be null");
-        }
+    UserEntity user = findEntity(userId);
 
-        UserEntity user = findEntity(userId);
+    boolean disablingActiveManager =
+        user.getRole() == UserRoleEntity.MANAGER
+            && user.getStatus() == UserStatusEntity.ACTIVE
+            && newStatus == UserStatus.DISABLED;
 
-        boolean disablingActiveManager =
-                user.getRole() == UserRoleEntity.MANAGER
-                        && user.getStatus() == UserStatusEntity.ACTIVE
-                        && newStatus == UserStatus.DISABLED;
-
-        if (disablingActiveManager && isLastActiveManager()) {
-            throw ApiException.conflict("The last active manager cannot be disabled");
-        }
-
-        user.setStatus(userMapper.toEntityStatus(newStatus));
-
-        return userMapper.toDomain(userRepository.save(user));
+    if (disablingActiveManager && isLastActiveManager()) {
+      throw ApiException.conflict("The last active manager cannot be disabled");
     }
 
-    private UserEntity findEntity(UUID userId) {
-        return userRepository
-                .findById(userId)
-                .orElseThrow(() -> ApiException.notFound("User not found: " + userId));
+    user.setStatus(userMapper.toEntityStatus(newStatus));
+
+    return userMapper.toDomain(userRepository.save(user));
+  }
+
+  private UserEntity findEntity(UUID userId) {
+    return userRepository
+        .findById(userId)
+        .orElseThrow(() -> ApiException.notFound("User not found: " + userId));
+  }
+
+  private boolean isLastActiveManager() {
+    return userRepository.countByRoleAndStatus(UserRoleEntity.MANAGER, UserStatusEntity.ACTIVE)
+        <= 1;
+  }
+
+  private void validatePagination(int page, int pageSize) {
+    if (page < 0) {
+      throw ApiException.badRequest("Page must be greater than or equal to 0");
     }
 
-    private boolean isLastActiveManager() {
-        return userRepository.countByRoleAndStatus(
-                UserRoleEntity.MANAGER, UserStatusEntity.ACTIVE)
-                <= 1;
+    if (pageSize < 1 || pageSize > 100) {
+      throw ApiException.badRequest("Page size must be between 1 and 100");
     }
-
-    private void validatePagination(int page, int pageSize) {
-        if (page < 0) {
-            throw ApiException.badRequest("Page must be greater than or equal to 0");
-        }
-
-        if (pageSize < 1 || pageSize > 100) {
-            throw ApiException.badRequest("Page size must be between 1 and 100");
-        }
-    }
+  }
 }

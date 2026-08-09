@@ -27,62 +27,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
-    private final UserMapper userMapper;
+  private final UserService userService;
+  private final UserMapper userMapper;
 
-    @GetMapping
-    public ResponseEntity<UserPageResponse> getUsers(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer pageSize,
-            @RequestParam(required = false) UserRole role,
-            @RequestParam(required = false) UserStatus status) {
+  @GetMapping
+  public ResponseEntity<UserPageResponse> getUsers(
+      @RequestParam(defaultValue = "0") Integer page,
+      @RequestParam(defaultValue = "20") Integer pageSize,
+      @RequestParam(required = false) UserRole role,
+      @RequestParam(required = false) UserStatus status) {
 
-        Page<User> users =
-                userService.getAll(
-                        page,
-                        pageSize,
-                        userMapper.toDomainRole(role),
-                        userMapper.toDomainStatus(status));
+    Page<User> users =
+        userService.getAll(
+            page, pageSize, userMapper.toDomainRole(role), userMapper.toDomainStatus(status));
 
-        List<UserResponse> data = users.stream().map(userMapper::toDto).toList();
+    List<UserResponse> data = users.stream().map(userMapper::toDto).toList();
 
-        return ResponseEntity.ok(
-                new UserPageResponse(
-                        data,
-                        page,
-                        pageSize,
-                        users.getTotalElements(),
-                        users.getTotalPages()));
-    }
+    return ResponseEntity.ok(
+        new UserPageResponse(
+            data, page, pageSize, users.getTotalElements(), users.getTotalPages()));
+  }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userMapper.toDto(userService.getById(userId)));
-    }
+  @GetMapping("/{userId}")
+  public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
+    return ResponseEntity.ok(userMapper.toDto(userService.getById(userId)));
+  }
 
-    @PatchMapping("/{userId}/role")
-    public ResponseEntity<UserResponse> updateUserRole(
-            @PathVariable UUID userId,
-            @RequestBody UpdateUserRoleRequest request) {
+  @PatchMapping("/{userId}/role")
+  public ResponseEntity<UserResponse> updateUserRole(
+      @PathVariable UUID userId, @RequestBody UpdateUserRoleRequest request) {
 
-        User updated =
-                userService.updateRole(
-                        userId,
-                        userMapper.toDomainRole(request.getRole()));
+    User updated = userService.updateRole(userId, userMapper.toDomainRole(request.getRole()));
 
-        return ResponseEntity.ok(userMapper.toDto(updated));
-    }
+    return ResponseEntity.ok(userMapper.toDto(updated));
+  }
 
-    @PatchMapping("/{userId}/status")
-    public ResponseEntity<UserResponse> updateUserStatus(
-            @PathVariable UUID userId,
-            @RequestBody UpdateUserStatusRequest request) {
+  @PatchMapping("/{userId}/status")
+  public ResponseEntity<UserResponse> updateUserStatus(
+      @PathVariable UUID userId, @RequestBody UpdateUserStatusRequest request) {
 
-        User updated =
-                userService.updateStatus(
-                        userId,
-                        userMapper.toDomainStatus(request.getStatus()));
+    User updated = userService.updateStatus(userId, userMapper.toDomainStatus(request.getStatus()));
 
-        return ResponseEntity.ok(userMapper.toDto(updated));
-    }
+    return ResponseEntity.ok(userMapper.toDto(updated));
+  }
 }

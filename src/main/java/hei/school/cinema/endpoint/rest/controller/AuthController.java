@@ -20,24 +20,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
-    private final JwtService jwtService;
-    private final UserMapper userMapper;
+  private final AuthService authService;
+  private final JwtService jwtService;
+  private final UserMapper userMapper;
 
-    @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest registerRequest) {
-        User registeredUser = authService.register(registerRequest);
+  @PostMapping("/register")
+  public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest registerRequest) {
+    User registeredUser = authService.register(registerRequest);
 
-        return ResponseEntity.status(201).body(userMapper.toDto(registeredUser));
-    }
+    return ResponseEntity.status(201).body(userMapper.toDto(registeredUser));
+  }
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
-        User authenticatedUser = authService.authenticate(loginRequest);
+  @PostMapping("/login")
+  public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    User authenticatedUser = authService.authenticate(loginRequest);
 
-        String accessToken = jwtService.generateToken(authenticatedUser);
+    String accessToken = jwtService.generateToken(authenticatedUser);
 
-        return ResponseEntity.ok(
-                new AuthResponse(accessToken, "Bearer", jwtService.getExpirationSeconds()));
-    }
+    return ResponseEntity.ok(
+        new AuthResponse(accessToken, "Bearer", jwtService.getExpirationSeconds()));
+  }
 }

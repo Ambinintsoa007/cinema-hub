@@ -15,22 +15,22 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
-    boolean existsByEmailIgnoreCase(String email);
+  boolean existsByEmailIgnoreCase(String email);
 
-    Optional<UserEntity> findByEmailIgnoreCase(String email);
+  Optional<UserEntity> findByEmailIgnoreCase(String email);
 
-    long countByRoleAndStatus(UserRoleEntity role, UserStatusEntity status);
+  long countByRoleAndStatus(UserRoleEntity role, UserStatusEntity status);
 
-    @Query(
-            """
-            SELECT u
-            FROM UserEntity u
-            WHERE (:role IS NULL OR u.role = :role)
-              AND (:status IS NULL OR u.status = :status)
-            ORDER BY u.lastName ASC, u.firstName ASC
-            """)
-    Page<UserEntity> findAllFiltered(
-            @Param("role") UserRoleEntity role,
-            @Param("status") UserStatusEntity status,
-            Pageable pageable);
+  @Query(
+      """
+      SELECT u
+      FROM UserEntity u
+      WHERE (:role IS NULL OR u.role = :role)
+        AND (:status IS NULL OR u.status = :status)
+      ORDER BY u.lastName ASC, u.firstName ASC
+      """)
+  Page<UserEntity> findAllFiltered(
+      @Param("role") UserRoleEntity role,
+      @Param("status") UserStatusEntity status,
+      Pageable pageable);
 }
