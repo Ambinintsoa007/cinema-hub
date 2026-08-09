@@ -29,6 +29,7 @@ class RoomIT extends FacadeIT {
 
   @BeforeEach
   void resetRoomData() {
+    jdbcTemplate.update("DELETE FROM projections");
     jdbcTemplate.update("DELETE FROM seats");
     jdbcTemplate.update("DELETE FROM rooms");
     jdbcTemplate.update(
@@ -71,6 +72,21 @@ class RoomIT extends FacadeIT {
   void list_rooms_with_invalid_page_size_returns_400() {
     ResponseEntity<ApiError> response =
         restTemplate.getForEntity("/rooms?pageSize=0", ApiError.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void list_rooms_with_negative_page_returns_400() {
+    ResponseEntity<ApiError> response = restTemplate.getForEntity("/rooms?page=-1", ApiError.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void list_rooms_with_page_size_above_limit_returns_400() {
+    ResponseEntity<ApiError> response =
+        restTemplate.getForEntity("/rooms?pageSize=101", ApiError.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }

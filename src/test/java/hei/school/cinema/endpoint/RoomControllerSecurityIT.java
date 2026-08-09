@@ -34,6 +34,7 @@ class RoomControllerSecurityIT extends FacadeIT {
 
   @BeforeEach
   void resetRoomData() {
+    jdbcTemplate.update("DELETE FROM projections");
     jdbcTemplate.update("DELETE FROM seats");
     jdbcTemplate.update("DELETE FROM rooms");
     jdbcTemplate.update(
@@ -148,6 +149,47 @@ class RoomControllerSecurityIT extends FacadeIT {
   @WithMockUser(roles = "MANAGER")
   void create_room_with_twenty_seven_rows_returns_400() throws Exception {
     ApiError error = errorAsError(Map.of("number", "Salle A", "rows", 27, "seatsPerRow", 1), 400);
+
+    assertThat(error.getType()).isEqualTo("BAD_REQUEST");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_missing_rows_returns_400() throws Exception {
+    ApiError error = errorAsError(Map.of("number", "Salle A", "seatsPerRow", 5), 400);
+
+    assertThat(error.getType()).isEqualTo("BAD_REQUEST");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_missing_seats_per_row_returns_400() throws Exception {
+    ApiError error = errorAsError(Map.of("number", "Salle A", "rows", 3), 400);
+
+    assertThat(error.getType()).isEqualTo("BAD_REQUEST");
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_hundred_seats_per_row_returns_201() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                post("/rooms")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(toJson(Map.of("number", "Salle 100", "rows", 1, "seatsPerRow", 100))))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+    RoomResponse room =
+        objectMapper.readValue(result.getResponse().getContentAsString(), RoomResponse.class);
+    assertThat(room.getCapacity()).isEqualTo(100);
+  }
+
+  @Test
+  @WithMockUser(roles = "MANAGER")
+  void create_room_with_hundred_and_one_seats_per_row_returns_400() throws Exception {
+    ApiError error = errorAsError(Map.of("number", "Salle A", "rows", 1, "seatsPerRow", 101), 400);
 
     assertThat(error.getType()).isEqualTo("BAD_REQUEST");
   }
