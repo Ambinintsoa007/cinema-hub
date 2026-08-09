@@ -12,8 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UpdateMovieRequest {
 
-    private String title;
-    private String description;
-    private String duration;
-    private Set<Genre> genres;
+  private String title;
+  private String description;
+  private String duration;
+  private Set<Genre> genres;
 }

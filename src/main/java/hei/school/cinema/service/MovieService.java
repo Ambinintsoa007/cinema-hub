@@ -67,12 +67,11 @@ public class MovieService {
       throw ApiException.badRequest("Page size must be between 1 and 100");
     }
 
-    GenreEntity genreEntity =
-            genre == null ? null : movieMapper.toEntityGenre(genre);
+    GenreEntity genreEntity = genre == null ? null : movieMapper.toEntityGenre(genre);
 
     return movieRepository
-            .findAllFiltered(title, genreEntity, PageRequest.of(page, pageSize))
-            .map(movieMapper::toDomain);
+        .findAllFiltered(title, genreEntity, PageRequest.of(page, pageSize))
+        .map(movieMapper::toDomain);
   }
 
   @Transactional

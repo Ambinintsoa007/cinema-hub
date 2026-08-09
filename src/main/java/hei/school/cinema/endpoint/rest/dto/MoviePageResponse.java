@@ -12,9 +12,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MoviePageResponse {
 
-    private List<MovieResponse> data;
-    private Integer page;
-    private Integer pageSize;
-    private Long totalElements;
-    private Integer totalPages;
+  private List<MovieResponse> data;
+  private Integer page;
+  private Integer pageSize;
+  private Long totalElements;
+  private Integer totalPages;
 }

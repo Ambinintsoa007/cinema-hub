@@ -15,50 +15,48 @@ public class MovieMapper {
 
   public Movie toDomain(MovieEntity entity) {
     Set<hei.school.cinema.model.Genre> genres =
-            entity.getGenres().stream()
-                    .map(movieGenre -> toDomainGenre(movieGenre.getId().getGenre()))
-                    .collect(Collectors.toSet());
+        entity.getGenres().stream()
+            .map(movieGenre -> toDomainGenre(movieGenre.getId().getGenre()))
+            .collect(Collectors.toSet());
 
     return Movie.builder()
-            .id(entity.getId())
-            .title(entity.getTitle())
-            .description(entity.getDescription())
-            .duration(java.time.Duration.ofSeconds(entity.getDurationSeconds()))
-            .genres(genres)
-            .build();
+        .id(entity.getId())
+        .title(entity.getTitle())
+        .description(entity.getDescription())
+        .duration(java.time.Duration.ofSeconds(entity.getDurationSeconds()))
+        .genres(genres)
+        .build();
   }
 
   public MovieEntity toEntity(Movie movie) {
     MovieEntity entity =
-            MovieEntity.builder()
-                    .id(movie.getId())
-                    .title(movie.getTitle())
-                    .description(movie.getDescription())
-                    .durationSeconds(movie.getDuration().toSeconds())
-                    .build();
+        MovieEntity.builder()
+            .id(movie.getId())
+            .title(movie.getTitle())
+            .description(movie.getDescription())
+            .durationSeconds(movie.getDuration().toSeconds())
+            .build();
 
     entity.setGenres(
-            movie.getGenres().stream()
-                    .map(
-                            genre ->
-                                    MovieGenreEntity.builder()
-                                            .id(
-                                                    new MovieGenreEntity.MovieGenreId(
-                                                            entity.getId(), toEntityGenre(genre)))
-                                            .movie(entity)
-                                            .build())
-                    .collect(Collectors.toSet()));
+        movie.getGenres().stream()
+            .map(
+                genre ->
+                    MovieGenreEntity.builder()
+                        .id(new MovieGenreEntity.MovieGenreId(entity.getId(), toEntityGenre(genre)))
+                        .movie(entity)
+                        .build())
+            .collect(Collectors.toSet()));
 
     return entity;
   }
 
   public MovieResponse toDto(Movie movie) {
     return new MovieResponse(
-            movie.getId(),
-            movie.getTitle(),
-            movie.getDescription(),
-            movie.getDuration().toString(),
-            movie.getGenres().stream().map(this::toDtoGenre).toList());
+        movie.getId(),
+        movie.getTitle(),
+        movie.getDescription(),
+        movie.getDuration().toString(),
+        movie.getGenres().stream().map(this::toDtoGenre).toList());
   }
 
   public hei.school.cinema.model.Genre toDomainGenre(GenreEntity entityGenre) {

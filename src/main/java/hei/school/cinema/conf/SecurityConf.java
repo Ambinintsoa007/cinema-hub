@@ -24,52 +24,50 @@ public class SecurityConf {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())
-            .sessionManagement(
-                    session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(
-                    auth ->
-                            auth
-                                    .requestMatchers("/ping", "/health/**")
-                                    .permitAll()
-                                    .requestMatchers(HttpMethod.GET, "/movies/**")
-                                    .permitAll()
-                                    .requestMatchers(HttpMethod.POST, "/movies")
-                                    .hasRole("MANAGER")
-                                    .requestMatchers(HttpMethod.PUT, "/movies/**")
-                                    .hasRole("MANAGER")
-                                    .anyRequest()
-                                    .authenticated())
-            .exceptionHandling(
-                    exceptions ->
-                            exceptions
-                                    .authenticationEntryPoint(
-                                            (request, response, exception) ->
-                                                    writeError(
-                                                            request.getRequestURI(),
-                                                            response,
-                                                            "UNAUTHORIZED",
-                                                            "Authentication required",
-                                                            HttpServletResponse.SC_UNAUTHORIZED))
-                                    .accessDeniedHandler(
-                                            (request, response, exception) ->
-                                                    writeError(
-                                                            request.getRequestURI(),
-                                                            response,
-                                                            "FORBIDDEN",
-                                                            "Access denied",
-                                                            HttpServletResponse.SC_FORBIDDEN)));
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/ping", "/health/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/movies/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/movies")
+                    .hasRole("MANAGER")
+                    .requestMatchers(HttpMethod.PUT, "/movies/**")
+                    .hasRole("MANAGER")
+                    .anyRequest()
+                    .authenticated())
+        .exceptionHandling(
+            exceptions ->
+                exceptions
+                    .authenticationEntryPoint(
+                        (request, response, exception) ->
+                            writeError(
+                                request.getRequestURI(),
+                                response,
+                                "UNAUTHORIZED",
+                                "Authentication required",
+                                HttpServletResponse.SC_UNAUTHORIZED))
+                    .accessDeniedHandler(
+                        (request, response, exception) ->
+                            writeError(
+                                request.getRequestURI(),
+                                response,
+                                "FORBIDDEN",
+                                "Access denied",
+                                HttpServletResponse.SC_FORBIDDEN)));
 
     return http.build();
   }
 
   private void writeError(
-          String path, HttpServletResponse response, String type, String message, int status) {
+      String path, HttpServletResponse response, String type, String message, int status) {
     try {
       response.setStatus(status);
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-      ApiError error =
-              new ApiError(type, message, status, OffsetDateTime.now(), path);
+      ApiError error = new ApiError(type, message, status, OffsetDateTime.now(), path);
 
       objectMapper.writeValue(response.getWriter(), error);
     } catch (Exception exception) {

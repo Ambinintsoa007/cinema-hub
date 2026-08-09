@@ -32,14 +32,14 @@ public class MovieController {
 
   @PostMapping
   public ResponseEntity<MovieResponse> createMovie(
-          @RequestBody CreateMovieRequest createMovieRequest) {
+      @RequestBody CreateMovieRequest createMovieRequest) {
 
     Movie created =
-            movieService.create(
-                    createMovieRequest.getTitle(),
-                    createMovieRequest.getDescription(),
-                    createMovieRequest.getDuration(),
-                    movieMapper.toDomainGenres(createMovieRequest.getGenres()));
+        movieService.create(
+            createMovieRequest.getTitle(),
+            createMovieRequest.getDescription(),
+            createMovieRequest.getDuration(),
+            movieMapper.toDomainGenres(createMovieRequest.getGenres()));
 
     return ResponseEntity.status(201).body(movieMapper.toDto(created));
   }
@@ -51,41 +51,33 @@ public class MovieController {
 
   @GetMapping
   public ResponseEntity<MoviePageResponse> getMovies(
-          @RequestParam(defaultValue = "0") Integer page,
-          @RequestParam(defaultValue = "20") Integer pageSize,
-          @RequestParam(required = false) String title,
-          @RequestParam(required = false) Genre genre) {
+      @RequestParam(defaultValue = "0") Integer page,
+      @RequestParam(defaultValue = "20") Integer pageSize,
+      @RequestParam(required = false) String title,
+      @RequestParam(required = false) Genre genre) {
 
     Page<Movie> movies =
-            movieService.getAll(
-                    title,
-                    genre == null ? null : movieMapper.toDomainGenre(genre),
-                    page,
-                    pageSize);
+        movieService.getAll(
+            title, genre == null ? null : movieMapper.toDomainGenre(genre), page, pageSize);
 
     List<MovieResponse> data = movies.stream().map(movieMapper::toDto).toList();
 
     return ResponseEntity.ok(
-            new MoviePageResponse(
-                    data,
-                    page,
-                    pageSize,
-                    movies.getTotalElements(),
-                    movies.getTotalPages()));
+        new MoviePageResponse(
+            data, page, pageSize, movies.getTotalElements(), movies.getTotalPages()));
   }
 
   @PutMapping("/{movieId}")
   public ResponseEntity<MovieResponse> updateMovie(
-          @PathVariable UUID movieId,
-          @RequestBody UpdateMovieRequest updateMovieRequest) {
+      @PathVariable UUID movieId, @RequestBody UpdateMovieRequest updateMovieRequest) {
 
     Movie updated =
-            movieService.update(
-                    movieId,
-                    updateMovieRequest.getTitle(),
-                    updateMovieRequest.getDescription(),
-                    updateMovieRequest.getDuration(),
-                    movieMapper.toDomainGenres(updateMovieRequest.getGenres()));
+        movieService.update(
+            movieId,
+            updateMovieRequest.getTitle(),
+            updateMovieRequest.getDescription(),
+            updateMovieRequest.getDuration(),
+            movieMapper.toDomainGenres(updateMovieRequest.getGenres()));
 
     return ResponseEntity.ok(movieMapper.toDto(updated));
   }
